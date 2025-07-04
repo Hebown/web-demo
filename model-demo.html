@@ -8,6 +8,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Roboto+Mono:wght@400;500&display=swap');
 
         :root {
+            --light-blue: #64ffda;
             --color-bg: #0a192f;
             --color-card-bg: #ffffff;
             --color-nav: #161b22;
@@ -101,7 +102,48 @@
             background-color: #a5d6a7; width: 0; transition: width 0.3s;
         }
         .control-btn .btn-text { position: relative; z-index: 1; }
-        
+        /* --- 新增：当前导航链接的高亮样式 --- */
+
+
+        /* 定义 .active 类的样式 
+        当链接拥有 active 这个 class 时，以下样式会生效。
+        */
+        .nav-links a.active {
+            color: white; /* 1. 将文字颜色从灰色变为白色 */
+            font-weight: 500;
+        }
+
+        /* 使用 ::after 伪元素来创建底线
+        */
+        /* 请用下面的代码替换您原有的 .nav-links a 样式 */
+        .nav-links a { 
+            color: #a6adb4; 
+            text-decoration: none; 
+            margin: 0 15px; 
+            font-size: 0.9rem;
+            padding: 5px; /* 给予文字一些呼吸空间 */
+            position: relative; /* 为底线定位做准备 */
+            padding-bottom: 8px; /* 在文字下方留出8px的空间给底线 */
+            transition: color 0.3s ease;
+        }
+
+        /* 请用下面的代码替换您原有的 .nav-links a.active::after 样式 */
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            /* 将底线定位在刚刚留出的 padding-bottom 空间的最底部 */
+            bottom: 0; 
+            left: 5px;
+            right: 5px;
+            height: 3px;
+            background-color: var(--light-blue);
+            border-radius: 2px;
+        }
+
+        /* 您可以保留原有的 hover 效果 */
+        .nav-links a:hover {
+            color: white;
+        }
         /* === Right Visualization Panel Styles === */
         .viz-card {
             flex-grow: 1; max-width: 900px; width: auto; /* Allow it to grow */
@@ -224,10 +266,10 @@
                 <img src="./revised.png" />
             </div>
             <div class="nav-links">
-                <a href="#">Models</a>
-                <a href="#">Research</a>
-                <a href="#">Science</a>
-                <a href="#">About</a>
+                <a href="#">数据净化</a>
+                <a href="#" class="active">模型对齐</a>
+                <a href="#">安全评估</a>
+                <a href="#">关于我们</a>
             </div>
         </div>
     </nav>
