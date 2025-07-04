@@ -4,13 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>数据净化可视化系统 (网页版)</title>
-    <!-- 引入美化字体 (Google Fonts) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- 引入 Vue 3 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <!-- 引入 ECharts -->
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
 
     <style>
@@ -22,7 +19,7 @@
             --text-dark: #2c3e50;
             --text-dark-secondary: #606266;
             --text-light: #f8f9fa;
-            --nav-bg: #161616;
+            --nav-bg: #1d232a; /* Updated from benchmark-demo.html */
             --gradient-bg: linear-gradient(-45deg, #0F172A, #1D2671, #000000, #1D2671);
         }
 
@@ -48,48 +45,32 @@
             animation: background-pan 20s ease infinite;
             overflow: hidden;
         }
-        
-        /* 全新导航栏样式 */
-        .main-header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            z-index: 1000;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 2vw;
-            height: 64px;
+
+        /* --- UNIFIED NAVBAR STYLE FROM benchmark-demo.html --- */
+        .navbar {
             background-color: var(--nav-bg);
-            color: var(--text-light);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 0 50px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-sizing: border-box;
         }
-        .nav-left, .nav-right { display: flex; align-items: center; gap: 24px; }
-        .nav-logo { font-size: 20px; font-weight: 600; }
-        .nav-links { display: flex; gap: 20px; }
-        .nav-links a { color: #aaa; text-decoration: none; font-size: 14px; transition: color 0.3s; }
-        .nav-links a:hover { color: #fff; }
-        .nav-button {
-            display: flex; align-items: center; gap: 8px;
-            padding: 8px 16px;
-            border-radius: 8px;
-            background-color: #333;
-            color: var(--text-light);
-            text-decoration: none;
-            font-size: 14px;
-            transition: background-color 0.3s;
-        }
-        .nav-button:hover { background-color: #444; }
-        .search-button {
-            background: none; border: none; color: #aaa; cursor: pointer;
-            padding: 8px; border-radius: 50%;
-        }
-        .search-button:hover { background-color: #333; color: #fff; }
+        .nav-left { display: flex; align-items: center; width: 100%; height: 100%; }
+        .nav-logo { font-size: 1.8rem; font-weight: 700; letter-spacing: 1px; margin-right: 30px; height: 100%; display: flex; align-items: center; }
+        .nav-logo img {  height: 80%; object-fit: contain; } /* Adjusted for better fit */
+        .nav-links { display: flex; justify-content: center;}
+        .nav-links a { color: #a6adb4; text-decoration: none; margin: 0 15px; font-size: 0.9rem; }
+        /* --- END OF UNIFIED NAVBAR STYLE --- */
 
         #app {
-            /* 调整为网页布局 */
-            padding-top: 64px; /* 为导航栏留出空间 */
+            padding-top: 60px; /* Adjusted for new navbar height */
             height: 100vh;
             display: flex;
             justify-content: center;
@@ -99,7 +80,7 @@
 
         .main-container {
             display: flex; width: 100%; max-width: 1600px; 
-            height: calc(100vh - 64px - 4vw); /* 减去导航栏和上下padding */
+            height: calc(100vh - 60px - 4vw); /* Adjusted for navbar */
             max-height: 900px;
             gap: 25px; animation: fadeIn 0.8s ease-out forwards;
         }
@@ -225,36 +206,23 @@
     </style>
 </head>
 <body>
-    <!-- 全新导航栏 -->
-    <header class="main-header">
+    <nav class="navbar">
         <div class="nav-left">
-            <div class="nav-logo">Data Purification</div>
-            <nav class="nav-links">
-                <a href="#">模型</a>
-                <a href="#">研究</a>
-                <a href="#">科学</a>
-                <a href="#">关于</a>
-            </nav>
+            <div class="nav-logo">
+                <img src="./revised.png" />
+            </div>
+            <div class="nav-links">
+                <a href="#">Models</a>
+                <a href="#">Research</a>
+                <a href="#">Science</a>
+                <a href="#">About</a>
+            </div>
         </div>
-        <div class="nav-right">
-            <a href="#" class="nav-button">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"/>
-                </svg>
-                <span>查看源码</span>
-            </a>
-            <button class="search-button">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
-                </svg>
-            </button>
-        </div>
-    </header>
+    </nav>
 
     <div id="app">
         <div class="main-container">
             <div class="panel control-panel">
-                 <!-- Logo已移除 -->
                  <h1>数据净化</h1>
                 
                 <p class="description">模拟从文件加载“带毒”数据集，并通过强大的动态可视化，直观感受海量噪点被净化移除的全过程。</p>
@@ -311,7 +279,6 @@
             </div>
         </div>
 
-        <!-- 文件浏览器 Modal -->
         <div v-if="showFileExplorer" class="file-explorer-overlay" @click.self="showFileExplorer = false">
             <div class="file-explorer">
                 <div class="fe-header">选择数据集文件</div>
@@ -502,6 +469,7 @@
                     const option = getBaseChartOption();
                     option.series = []; option.legend.data = [];
                     chartInstance.value.setOption(option, true);
+
                 };
                 
                 onMounted(() => {

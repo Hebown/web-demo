@@ -30,33 +30,54 @@
             overflow: hidden; font-family: var(--font-family-sans);
             background-color: var(--color-bg); color: var(--color-text-dark);
         }
+        
+        /* MODIFICATION START: Added this new rule for body */
+        body {
+            padding-top: 60px; /* Push all content down by the navbar's height */
+            box-sizing: border-box; /* Ensures padding is included in height calculations */
+        }
+        /* MODIFICATION END */
 
+        /* --- UNIFIED NAVBAR STYLE FROM benchmark-demo.html --- */
         .navbar {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 40px; height: 60px; background-color: var(--color-nav);
-            color: var(--color-text-light); border-bottom: 1px solid var(--color-border-nav);
-            box-sizing: border-box; flex-shrink: 0;
+            background-color: var(--nav-bg);
+            padding: 0 50px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-sizing: border-box;
         }
-        .nav-left, .nav-right { display: flex; align-items: center; gap: 25px; }
-        .nav-logo { font-size: 1.4em; font-weight: 700; }
-        .nav-links a { color: var(--color-text-secondary-nav); text-decoration: none; font-size: 0.9em; transition: color 0.3s; }
-        .nav-links a:hover { color: var(--color-text-light); }
-        .nav-buttons .btn {
-            background-color: #21262d; border: 1px solid var(--color-border-nav); padding: 8px 16px;
-            border-radius: 6px; color: var(--color-text-light); font-size: 0.85em; cursor: pointer; transition: background-color 0.3s;
-        }
-        .nav-buttons .btn:hover { background-color: #30363d; }
-        .nav-search svg { width: 20px; height: 20px; fill: var(--color-text-secondary-nav); }
+        .nav-left { display: flex; align-items: center; width: 100%; height: 100%; }
+        .nav-logo { font-size: 1.8rem; font-weight: 700; letter-spacing: 1px; margin-right: 30px; height: 100%; display: flex; align-items: center; }
+        .nav-logo img {  height: 80%; object-fit: contain; } /* Adjusted for better fit */
+        .nav-links { display: flex; justify-content: center;}
+        .nav-links a { color: #a6adb4; text-decoration: none; margin: 0 15px; font-size: 0.9rem; }
+        /* --- END OF UNIFIED NAVBAR STYLE --- */
 
         .main-layout {
-            display: flex; justify-content: center; align-items: stretch;
-            gap: 30px; padding: 40px; height: calc(100vh - 60px); box-sizing: border-box;
+            display: flex; 
+            justify-content: center; 
+            align-items: center; /* MODIFICATION: Changed to center for better alignment */
+            gap: 30px; 
+            padding: 40px; 
+            height: calc(100vh - 60px); /* This now correctly fills the space below the navbar */
+            box-sizing: border-box;
         }
 
         .card {
             background: var(--color-card-bg); border-radius: 16px;
             box-shadow: 0 10px 50px rgba(0, 0, 0, 0.2);
             display: flex; flex-direction: column; box-sizing: border-box;
+            /* Added height and width to ensure cards are visible within the centered layout */
+            width: 300px;
+            height: 95%; 
         }
 
         .control-card {
@@ -82,7 +103,8 @@
         
         /* === Right Visualization Panel Styles === */
         .viz-card {
-            flex-grow: 1; max-width: 900px; padding: 0;
+            flex-grow: 1; max-width: 900px; width: auto; /* Allow it to grow */
+             padding: 0;
             overflow: hidden; background-color: var(--anim-chat-bg);
         }
         .chat-area {
@@ -197,12 +219,15 @@
 
     <nav class="navbar">
         <div class="nav-left">
-            <div class="nav-logo">DeepAlign</div>
-            <div class="nav-links"><a href="#">Models</a><a href="#">Research</a><a href="#">Science</a><a href="#">About</a></div>
-        </div>
-        <div class="nav-right">
-            <div class="nav-buttons"><button class="btn">Try Google AI Studio</button><button class="btn">Try Gemini</button></div>
-            <div class="nav-search"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M10.68 11.74a6.5 6.5 0 0 1-7.922-8.982 6.5 6.5 0 0 1 8.982 7.922l3.04 3.04a.75.75 0 0 1-1.06 1.06l-3.04-3.04ZM9.47 11.28a5 5 0 1 1-7.07-7.07 5 5 0 0 1 7.07 7.07Z"></path></svg></div>
+            <div class="nav-logo">
+                <img src="./revised.png" />
+            </div>
+            <div class="nav-links">
+                <a href="#">Models</a>
+                <a href="#">Research</a>
+                <a href="#">Science</a>
+                <a href="#">About</a>
+            </div>
         </div>
     </nav>
 
