@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据净化可视化系统 (网页版)</title>
+    <!-- 引入美化字体 (Google Fonts) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- 引入 Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- 引入 ECharts -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+
+    <style>
+        :root {
+            /* 主题色彩 */
+            --primary-color: #007BFF;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --text-dark: #2c3e50;
+            --text-dark-secondary: #606266;
+            --text-light: #f8f9fa;
+            --nav-bg: #161616;
+            --gradient-bg: linear-gradient(-45deg, #0F172A, #1D2671, #000000, #1D2671);
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes modal-show { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes background-pan {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        @keyframes border-glow {
+            0% { box-shadow: 0 0 10px rgba(0, 123, 255, 0.2), 0 0 20px rgba(0, 123, 255, 0.2); }
+            50% { box-shadow: 0 0 20px rgba(0, 123, 255, 0.5), 0 0 30px rgba(0, 123, 255, 0.5); }
+            100% { box-shadow: 0 0 10px rgba(0, 123, 255, 0.2), 0 0 20px rgba(0, 123, 255, 0.2); }
+        }
+
+        body, html {
+            margin: 0; padding: 0; height: 100%;
+            font-family: 'Inter', sans-serif;
+            background: var(--gradient-bg);
+            background-size: 400% 400%;
+            animation: background-pan 20s ease infinite;
+            overflow: hidden;
+        }
+        
+        /* 全新导航栏样式 */
+        .main-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2vw;
+            height: 64px;
+            background-color: var(--nav-bg);
+            color: var(--text-light);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .nav-left, .nav-right { display: flex; align-items: center; gap: 24px; }
+        .nav-logo { font-size: 20px; font-weight: 600; }
+        .nav-links { display: flex; gap: 20px; }
+        .nav-links a { color: #aaa; text-decoration: none; font-size: 14px; transition: color 0.3s; }
+        .nav-links a:hover { color: #fff; }
+        .nav-button {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            background-color: #333;
+            color: var(--text-light);
+            text-decoration: none;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        .nav-button:hover { background-color: #444; }
+        .search-button {
+            background: none; border: none; color: #aaa; cursor: pointer;
+            padding: 8px; border-radius: 50%;
+        }
+        .search-button:hover { background-color: #333; color: #fff; }
+
+        #app {
+            /* 调整为网页布局 */
+            padding-top: 64px; /* 为导航栏留出空间 */
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-sizing: border-box;
+        }
+
+        .main-container {
+            display: flex; width: 100%; max-width: 1600px; 
+            height: calc(100vh - 64px - 4vw); /* 减去导航栏和上下padding */
+            max-height: 900px;
+            gap: 25px; animation: fadeIn 0.8s ease-out forwards;
+        }
+
+        .panel {
+            background-color: #ffffff;
+            color: var(--text-dark);
+            border-radius: 16px; 
+            padding: 28px 32px; display: flex; flex-direction: column;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            border: 1px solid #e4e7ed;
+            position: relative;
+            animation: border-glow 4s ease-in-out infinite;
+        }
+        
+        .panel::before, .panel::after {
+            content: ''; position: absolute; width: 20px; height: 20px;
+            border-color: var(--primary-color); border-style: solid; opacity: 0.7;
+        }
+        .panel::before { top: -2px; left: -2px; border-width: 2px 0 0 2px; border-radius: 16px 0 0 0; }
+        .panel::after { bottom: -2px; right: -2px; border-width: 0 2px 2px 0; border-radius: 0 0 16px 0; }
+
+        .control-panel { flex: 0 0 380px; }
+        .control-panel h1 {
+            font-size: 26px; font-weight: 700; margin: 0; color: var(--text-dark);
+            padding-bottom: 10px; margin-bottom: 25px;
+            border-bottom: 2px solid;
+            border-image: linear-gradient(to right, var(--primary-color), transparent) 1;
+        }
+        .control-panel .description {
+            font-size: 14px; color: var(--text-dark-secondary); line-height: 1.7; border-left: 3px solid var(--primary-color);
+            padding-left: 15px; margin: 15px 0; background-color: #f8f9fa;
+        }
+
+        .stats-display {
+            margin: 20px 0; padding: 15px; border-radius: 8px;
+            background-color: #f8f9fa; border: 1px solid #e9ecef;
+        }
+        .stats-header {
+            font-weight: 600; color: var(--text-dark); margin-bottom: 12px;
+            padding-bottom: 10px; border-bottom: 1px solid #e9ecef;
+        }
+        .stats-body { display: flex; flex-direction: column; gap: 10px; font-size: 14px; }
+        .stat-item {
+            display: flex; justify-content: space-between; align-items: center;
+            color: var(--text-dark-secondary);
+        }
+        .stat-value { font-weight: 700; font-size: 16px; }
+
+        .gradient-text {
+            background-size: 200% auto; -webkit-background-clip: text;
+            background-clip: text; -webkit-text-fill-color: transparent;
+            animation: text-gradient-animation 3s linear infinite;
+        }
+        @keyframes text-gradient-animation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .gradient-blue { background-image: linear-gradient(90deg, #007BFF, #00C6FF); }
+        .gradient-green { background-image: linear-gradient(90deg, #28a745, #20c997); }
+        .gradient-red { background-image: linear-gradient(90deg, #dc3545, #fd7e14); }
+
+        .progress-bar-container {
+            height: 20px; margin-top: 20px; background-color: #e9ecef; border-radius: 10px;
+            overflow: hidden; opacity: 0; transition: opacity 0.5s;
+        }
+        .progress-bar {
+            width: 0%; height: 100%; background-color: var(--primary-color);
+            border-radius: 10px; transition: width 1s ease-out;
+        }
+        .button-group { margin-top: auto; display: flex; flex-direction: column; gap: 15px; }
+
+        .btn {
+            padding: 14px 25px; font-size: 16px; font-weight: 600; border: none;
+            border-radius: 8px; cursor: pointer; transition: all 0.25s ease;
+            display: flex; align-items: center; justify-content: center;
+            gap: 10px; letter-spacing: 0.5px; position: relative; color: #fff;
+        }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.15); filter: brightness(1.1); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn-primary { background: var(--primary-color); }
+        .btn-success { background: var(--success-color); }
+        .btn-danger { background: var(--danger-color); }
+        
+        .visualization-panel { flex: 1; min-width: 0; position: relative; }
+        .visualization-panel h2 {
+            margin: 0 0 20px; font-size: 22px; font-weight: 600; text-align: center; color: var(--text-dark);
+            padding-bottom: 10px; border-bottom: 2px solid;
+            border-image: linear-gradient(to right, var(--primary-color), transparent) 1;
+        }
+        #chart-container { width: 100%; height: 100%; }
+        
+        .cleaning-overlay {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(255, 255, 255, 0.7); backdrop-filter: blur(2px);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; font-weight: 600; color: var(--primary-color); z-index: 10;
+            opacity: 0; visibility: hidden; transition: all 0.3s ease;
+        }
+        .cleaning-overlay.active { opacity: 1; visibility: visible; }
+
+        .file-explorer-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.4); z-index: 100;
+            display: flex; align-items: center; justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+        .file-explorer {
+            width: 500px; height: 350px; background-color: #fff; border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2); animation: modal-show 0.4s ease-out;
+            display: flex; flex-direction: column; color: var(--text-dark);
+        }
+        .fe-header { padding: 15px 20px; border-bottom: 1px solid #eee; font-weight: 600; }
+        .fe-body { padding: 20px; flex-grow: 1; }
+        .fe-item {
+            display: flex; align-items: center; gap: 15px; padding: 10px;
+            border-radius: 8px; cursor: pointer; transition: background-color 0.2s;
+        }
+        .fe-item:hover { background-color: #f0f2f5; }
+        .fe-item svg { width: 24px; height: 24px; color: #6c757d; }
+        .fe-item.file svg { color: var(--primary-color); }
+    </style>
+</head>
+<body>
+    <!-- 全新导航栏 -->
+    <header class="main-header">
+        <div class="nav-left">
+            <div class="nav-logo">Data Purification</div>
+            <nav class="nav-links">
+                <a href="#">模型</a>
+                <a href="#">研究</a>
+                <a href="#">科学</a>
+                <a href="#">关于</a>
+            </nav>
+        </div>
+        <div class="nav-right">
+            <a href="#" class="nav-button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"/>
+                </svg>
+                <span>查看源码</span>
+            </a>
+            <button class="search-button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <div id="app">
+        <div class="main-container">
+            <div class="panel control-panel">
+                 <!-- Logo已移除 -->
+                 <h1>数据净化</h1>
+                
+                <p class="description">模拟从文件加载“带毒”数据集，并通过强大的动态可视化，直观感受海量噪点被净化移除的全过程。</p>
+                
+                <div v-if="dataCleaned" class="stats-display">
+                    <div class="stats-header">系统状态</div>
+                    <div class="stats-body">
+                        <div class="stat-item">
+                            <span>总数据点:</span>
+                            <span class="stat-value gradient-text gradient-blue">{{ stats.total }}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span>识别正常簇:</span>
+                            <span class="stat-value gradient-text gradient-green">{{ stats.clusters }} 个</span>
+                        </div>
+                        <div class="stat-item">
+                            <span>随机噪点:</span>
+                            <span class="stat-value gradient-text gradient-red">{{ stats.noise }} 个</span>
+                        </div>
+                        <div class="stat-item">
+                            <span>恶意后门簇:</span>
+                            <span class="stat-value gradient-text gradient-red">{{ stats.backdoor }} 个</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress-bar-container" :style="{ opacity: isLoading ? 1 : 0 }">
+                    <div class="progress-bar" :style="{ width: uploadProgress + '%' }"></div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" @click="openFileExplorer" :disabled="dataGenerated || isLoading">
+                         <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 24 24" width="20px" fill="currentColor"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+                        上传数据集
+                    </button>
+                    <button class="btn btn-primary" @click="runPurification" :disabled="!dataGenerated || dataCleaned || isCleaning">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 24 24" width="20px" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 2L4.5 5 12 8l7.5-3L12 2zm0 13.5l-7.5-3v3l7.5 3 7.5-3v-3l-7.5 3zM12 11L4.5 8v3l7.5 3 7.5-3V8l-7.5 3z"/></svg>
+                        执行净化
+                    </button>
+                    <button class="btn btn-success" @click="downloadCleanedData" :disabled="!dataCleaned">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 24 24" width="20px" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                        下载数据集
+                    </button>
+                    <button class="btn btn-danger" @click="reset">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 24 24" width="20px" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M18.3 5.71a.996.996 0 0 0-1.41 0L12 10.59 7.11 5.7A.996.996 0 1 0 5.7 7.11L10.59 12 5.7 16.89a.996.996 0 1 0 1.41 1.41L12 13.41l4.89 4.89a.996.996 0 1 0 1.41-1.41L13.41 12l4.89-4.89c.38-.38.38-1.02 0-1.4z"/></svg>
+                        重置系统
+                    </button>
+                </div>
+            </div>
+            <div class="panel visualization-panel">
+                <h2>动态数据净化可视化</h2>
+                <div id="chart-container"></div>
+                <div class="cleaning-overlay" :class="{ active: isCleaning }">净化中...</div>
+            </div>
+        </div>
+
+        <!-- 文件浏览器 Modal -->
+        <div v-if="showFileExplorer" class="file-explorer-overlay" @click.self="showFileExplorer = false">
+            <div class="file-explorer">
+                <div class="fe-header">选择数据集文件</div>
+                <div class="fe-body">
+                    <div class="fe-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+                        <span>datasets</span>
+                    </div>
+                    <div class="fe-item file" @click="selectFile">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zM16 18H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                        <span>dataset-toxic.csv</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted, nextTick } = Vue;
+
+        createApp({
+            setup() {
+                const chartInstance = ref(null);
+                const allData = ref([]);
+                const dataGenerated = ref(false);
+                const dataCleaned = ref(false);
+                const isLoading = ref(false);
+                const isCleaning = ref(false);
+                const uploadProgress = ref(0);
+                const showFileExplorer = ref(false);
+                const stats = ref({ total: 0, clusters: 0, noise: 0, backdoor: 0 });
+
+                const ANIMATION_DURATION = 2500;
+
+                const getBaseChartOption = () => ({
+                    grid: { left: '3%', right: '4%', bottom: '10%', top: '5%', containLabel: true },
+                    tooltip: { trigger: 'item' },
+                    xAxis: { type: 'value', min:0, max:100 },
+                    yAxis: { type: 'value', min:0, max:100 },
+                    legend: { bottom: 0, inactiveColor: '#ccc' },
+                    animationDurationUpdate: ANIMATION_DURATION,
+                    universalTransition: { enabled: true },
+                    series: []
+                });
+
+                const generatePointsInCluster = (count, centerX, centerY, stdDev, type, clusterId = null) => {
+                    const points = [];
+                    for (let i = 0; i < count; i++) {
+                        let u=0, v=0;
+                        while(u===0) u = Math.random(); while(v===0) v = Math.random();
+                        let x = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+                        let y = Math.sqrt(-2.0 * Math.log(u)) * Math.sin(2.0 * Math.PI * v);
+                        points.push({
+                            value: [centerX + stdDev * x, centerY + stdDev * y], type,
+                            id: `${type}-${clusterId || 0}-${i}`, clusterId
+                        });
+                    }
+                    return points;
+                };
+
+                const openFileExplorer = () => { showFileExplorer.value = true; };
+                const selectFile = () => {
+                    showFileExplorer.value = false;
+                    startLoadingProcess();
+                };
+                
+                const startLoadingProcess = () => {
+                    if (dataGenerated.value || isLoading.value) return;
+                    isLoading.value = true;
+                    uploadProgress.value = 0;
+                    
+                    const interval = setInterval(() => {
+                        uploadProgress.value += 10;
+                        if (uploadProgress.value >= 100) {
+                            clearInterval(interval);
+                            
+                            let tempData = [];
+                            tempData.push(...generatePointsInCluster(60, 20, 80, 4, 'normal', 1));
+                            tempData.push(...generatePointsInCluster(70, 45, 65, 5, 'normal', 2));
+                            tempData.push(...generatePointsInCluster(80, 75, 75, 6, 'normal', 3));
+                            tempData.push(...generatePointsInCluster(65, 60, 25, 4, 'normal', 4));
+                            tempData.push(...generatePointsInCluster(40, 88, 15, 1.5, 'backdoor'));
+                            for(let i=0; i < 250; i++) {
+                                tempData.push({ value: [Math.random()*100, Math.random()*100], type: 'noise', id: `noise-0-${i}` });
+                            }
+                            allData.value = tempData;
+
+                            const option = getBaseChartOption();
+                            option.legend.data = ['未处理数据'];
+                            option.series = [{
+                                id: 'all_data', name: '未处理数据', type: 'scatter', symbolSize: 7,
+                                itemStyle: { color: '#999', opacity: 0.7 },
+                                data: allData.value, animationDelay: (idx) => idx * 2
+                            }];
+                            chartInstance.value.setOption(option, true);
+                            
+                            dataGenerated.value = true;
+                            setTimeout(() => { isLoading.value = false; }, 500);
+                        }
+                    }, 120);
+                };
+
+                const runPurification = () => {
+                    if (!dataGenerated.value || dataCleaned.value || isCleaning.value) return;
+                    isCleaning.value = true;
+
+                    stats.value.total = allData.value.length;
+                    stats.value.clusters = [...new Set(allData.value.filter(p => p.type === 'normal').map(p => p.clusterId))].length;
+                    stats.value.noise = allData.value.filter(p => p.type === 'noise').length;
+                    stats.value.backdoor = allData.value.filter(p => p.type === 'backdoor').length;
+
+                    const option = getBaseChartOption();
+                    const seriesData = {};
+                    
+                    allData.value.forEach(point => {
+                        let targetSeriesId;
+                        let targetPoint = {...point};
+                        if (point.type === 'normal') {
+                            targetSeriesId = `cluster_${point.clusterId}`;
+                        } else {
+                            targetSeriesId = 'noise_and_backdoor';
+                            targetPoint.value = [120 + Math.random() * 20, Math.random() * 100];
+                        }
+                        if (!seriesData[targetSeriesId]) seriesData[targetSeriesId] = [];
+                        seriesData[targetSeriesId].push(targetPoint);
+                    });
+                    
+                    const legendData = [];
+                    const finalSeries = [];
+                    
+                    const clusterKeys = Object.keys(seriesData).filter(k => k.startsWith('cluster'));
+                    
+                    clusterKeys.forEach((key) => {
+                        const clusterId = key.split('_')[1];
+                        const name = `正常簇 ${clusterId}`;
+                        legendData.push(name);
+                        finalSeries.push({
+                            id: key, name: name, type: 'scatter', symbolSize: 8, data: seriesData[key]
+                        });
+                    });
+
+                    if (seriesData['noise_and_backdoor']) {
+                        const name = '已滤除的噪点';
+                        legendData.push(name);
+                        finalSeries.push({
+                            id: 'noise_and_backdoor', name: name, type: 'scatter', symbolSize: 8,
+                            itemStyle: { color: 'rgba(220, 53, 69, 0.6)' },
+                            data: seriesData['noise_and_backdoor']
+                        });
+                    }
+
+                    option.series = finalSeries;
+                    option.legend.data = legendData;
+                    chartInstance.value.setOption(option);
+                    
+                    setTimeout(() => {
+                        const finalOption = chartInstance.value.getOption();
+                        finalOption.series = finalOption.series.filter(s => s.id.startsWith('cluster'));
+                        finalOption.legend[0].data = finalOption.legend[0].data.filter(name => name.startsWith('正常簇'));
+                        
+                        chartInstance.value.setOption(finalOption, { replaceMerge: ['series', 'legend'] });
+                        isCleaning.value = false;
+                        dataCleaned.value = true;
+                    }, ANIMATION_DURATION);
+                };
+
+                const downloadCleanedData = () => {
+                    const cleaned = allData.value.filter(p => p.type === 'normal');
+                    let csvContent = "data:text/csv;charset=utf-8,x,y,type,clusterId\n";
+                    cleaned.forEach(p => {
+                        let row = `${p.value[0]},${p.value[1]},${p.type},${p.clusterId}`;
+                        csvContent += row + "\n";
+                    });
+
+                    const encodedUri = encodeURI(csvContent);
+                    const link = document.createElement("a");
+                    link.setAttribute("href", encodedUri);
+                    link.setAttribute("download", "cleaned_dataset.csv");
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                };
+
+                const reset = () => {
+                    dataGenerated.value = false; dataCleaned.value = false; isLoading.value = false;
+                    isCleaning.value = false; uploadProgress.value = 0; showFileExplorer.value = false;
+                    stats.value = { total: 0, clusters: 0, noise: 0, backdoor: 0 };
+                    const option = getBaseChartOption();
+                    option.series = []; option.legend.data = [];
+                    chartInstance.value.setOption(option, true);
+                };
+                
+                onMounted(() => {
+                    nextTick(() => {
+                        const chartDom = document.getElementById('chart-container');
+                        chartInstance.value = echarts.init(chartDom);
+                        reset();
+                        window.addEventListener('resize', () => chartInstance.value?.resize());
+                    });
+                });
+
+                return {
+                    isLoading, isCleaning, dataGenerated, dataCleaned, uploadProgress, showFileExplorer, stats,
+                    openFileExplorer, selectFile, runPurification, reset, downloadCleanedData
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
