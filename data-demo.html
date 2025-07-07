@@ -112,7 +112,7 @@
             color: white;
         }
         #app {
-            padding-top: 60px; /* Adjusted for new navbar height */
+            padding: 60px 10px 10px 10px;
             height: 100vh;
             display: flex;
             justify-content: center;
@@ -296,9 +296,9 @@
             <div class="panel control-panel">
                  <h1>数据净化</h1>
                 
-                <p class="description">模拟从文件加载"带毒"数据集，并通过强大的动态可视化，直观感受海量噪点被净化移除的全过程。</p>
+                <p class="description">从文件加载"带毒"数据集，并通过强大的动态可视化，直观感受海量噪点被净化移除的全过程。</p>
 
-                <div class="feature-cards">
+                <div class="feature-cards" v-if="!dataCleaned">
                     <div class="feature-card">
                         <h3><span class="gradient-text gradient-blue">智能识别</span></h3>
                         <p>采用先进的聚类算法，精准识别数据中的异常点和后门数据，准确率高达99.9%</p>
@@ -311,16 +311,6 @@
                         <h3><span class="gradient-text gradient-red">安全可控</span></h3>
                         <p>全程数据加密处理，确保数据安全性。支持细粒度的处理策略自定义</p>
                     </div>
-                </div>
-
-                <div class="tech-advantages">
-                    <h3>技术优势</h3>
-                    <ul>
-                        <li><span class="bullet">•</span> 支持多种数据格式：CSV、JSON、Excel等</li>
-                        <!-- <li><span class="bullet">•</span> 自适应噪声阈值，智能权衡保真度</li>
-                        <li><span class="bullet">•</span> 增量学习能力，持续优化净化效果</li>
-                        <li><span class="bullet">•</span> 提供详细的数据质量分析报告</li> -->
-                    </ul>
                 </div>
                 
                 <div v-if="dataCleaned" class="stats-display">

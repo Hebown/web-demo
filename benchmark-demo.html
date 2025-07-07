@@ -136,8 +136,9 @@
             box-shadow: 0 10px 30px -15px rgba(0,0,0,0.7);
         }
         
-        .left-column { display: flex; flex-direction: column; gap: 30px; }
+        .left-column { display: flex; flex-direction: column; gap: 30px; height: 100%; }
         .control-card h2, .info-card h2 { margin-top: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; font-size: 1.25rem; }
+        .control-card {height: 100%;}
         .info-card p { line-height: 1.6; font-size: 0.95rem; }
         .control-buttons { display: flex; flex-direction: column; gap: 20px; }
         .control-btn { padding: 15px 20px; font-size: 1rem; border-radius: 5px; border: 2px solid var(--primary-color); background-color: transparent; color: var(--primary-color); cursor: pointer; transition: all 0.3s ease; text-align: left; font-weight: 500; }
@@ -209,7 +210,7 @@
         .charts-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 20px; }
         .chart-card { padding: 20px; background: var(--card-bg); border-radius: 8px; color: var(--text-dark); height: 350px; display: flex; flex-direction: column; }
         .chart-card h3 { margin-top: 0; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); font-size: 1rem; }
-        .chart-card canvas { max-height: 100%; }
+        .chart-card canvas { max-height: 90%; max-width: 90%;}
 
         /* 详细风险列表 V1 样式 */
         .details-card { padding: 30px; }
@@ -233,7 +234,10 @@
         @media (max-width: 768px) {
             .nav-links { display: none; }
         }
-
+        .description {
+            font-size: 14px; color: var(--text-dark-secondary); line-height: 1.7; border-left: 3px solid var(--primary-color);
+            padding-left: 15px; margin: 15px 0; background-color: #f8f9fa;
+        }
     </style>
 </head>
 <body>
@@ -260,6 +264,9 @@
                     <div class="left-column">
                         <div class="card control-card">
                             <h2>控制面板</h2>
+                            <p class="description">
+                                只需要点击上传你的模型，既可以开始各种安全测试，并查看测试结果。为模型安全提供进一步的保障。
+                            </p>
                             <div class="control-buttons">
                                 <button class="control-btn" id="upload-btn"><i class="fa-solid fa-upload"></i> 上传模型</button>
                                 <div id="upload-status" class="hidden">
@@ -269,10 +276,6 @@
                                 <button class="control-btn" id="start-test-btn" disabled><i class="fa-solid fa-play"></i> 开始安全测试</button>
                                 <button class="control-btn" id="view-results-btn" disabled><i class="fa-solid fa-chart-line"></i> 查看测试结果</button>
                             </div>
-                        </div>
-                        <div class="card info-card">
-                            <h2>1. 轻松连接，一键配置</h2>
-                            <p>无需复杂的部署。只需提供您模型的API端点，选择您关心的安全类别（如：提示词注入、数据泄露、偏见与歧视等），即可开始测试。</p>
                         </div>
                     </div>
                     <div class="card visualization-card">
@@ -492,7 +495,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     data: [15, 45, 80],
                     backgroundColor: [riskHighColor, riskMediumColor, riskLowColor],
                     borderColor: 'var(--card-bg)',
-                    borderWidth: 4
+                    borderWidth: 2
                 }]
             },
             options: { ...chartOptions }
@@ -533,7 +536,7 @@ document.addEventListener('DOMContentLoaded', function() {
             mockData.push({
                 type: types[Math.floor(Math.random() * 4)],
                 level: level,
-                prompt: `模拟攻击样例 #${i+1}: 这是一个关于${level}风险的攻击...`,
+                prompt: `攻击样例 #${i+1}: 这是一个关于${level}风险的攻击...`,
                 response: `模型返回了${level}风险响应...`,
                 time: `2025-07-02 21:${30 + i % 30}:${10 + i % 50}`
             });
